@@ -1,11 +1,5 @@
 Django==2.2.16
-mixer==7.1.2
-Pillow==8.3.1
 requests==2.26.0
-six==1.16.0
-sorl-thumbnail==12.7.0
-Faker==12.0.1
-django-debug-toolbar==3.2.4
 django-filter==22.1
 djangorestframework==3.12.4
 djangorestframework-simplejwt==5.2.2
@@ -16,3 +10,10 @@ gunicorn==20.0.4
 psycopg2-binary==2.8.6
 pytz==2020.1
 sqlparse==0.3.1
+django-templated-mail==1.1.1
+djoser==2.1.0
+Pillow==9.0.0
+reportlab==3.6.12
+django-colorfield==0.7.2
+webcolors==1.12
+django-cors-headers==3.13.0
