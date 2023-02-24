@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
 
 from .permissions import AdminOrReadOnly
-from .models import Tag, Ingredients, Recipe
+from .models import Tag, Ingredients
 from .serealizer import TagSerializer, IngridientSerealizator
 
 
