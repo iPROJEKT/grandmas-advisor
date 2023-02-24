@@ -21,16 +21,16 @@ class Tag(models.Model):
 
 
 class Ingredients(models.Model):
-    title = models.CharField(
+    name = models.CharField(
         max_length=settings.NAME_MAX_LENGTH,
     )
-    weight = models.IntegerField(
+    measurement_unit = models.IntegerField(
         validators=[weight_valid]
     )
 
 
 class Recipe(models.Model):
-    autor = models.ForeignKey(
+    author = models.ForeignKey(
         User,
         related_name='recipes',
         on_delete=models.CASCADE,
