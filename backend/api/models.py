@@ -50,7 +50,7 @@ class Recipe(models.Model):
     text = models.TextField(
         'Описание рецепта',
     )
-    tags = models.CharField(
+    tags = models.ManyToManyField(
         Tag,
         max_length=settings.NAME_MAX_LENGTH
     )
