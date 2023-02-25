@@ -1,9 +1,10 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from djoser.serializers import UserSerializer
+from drf_extra_fields.fields import Base64ImageField
 
 from user.serializers import CustomUserSerializer
-from .models import Tag, Recipe, Ingredients
+from .models import Tag, Recipe, Ingredients, FavoriteRecipe, IngredientRecipe, ShoppingCart
 from user.models import Follow, User
 
 
@@ -22,13 +23,42 @@ class IngridientSerealizator(serializers.ModelSerializer):
             'id', 'name', 'measurement_unit'
         )
 
-class RecipeSerealizator(serializers.ModelSerializer):
+class IngredientInRecipeSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(
+        source='ingredient.id',
+    )
+    name = serializers.ReadOnlyField(
+        source='ingredient.name',
+    )
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit',
+    )
 
     class Meta:
-        model = Recipe
+        model = IngredientRecipe
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+
+class  FavoriteSerealizator(serializers.ModelSerializer):
+    recipe = serializers.PrimaryKeyRelatedField(
+        queryset=Recipe.objects.all()
+    )
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all()
+    )
+
+    class Meta:
+        model = FavoriteRecipe
         fields = (
-            'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time'
+            'id', 'name', 'image', 'cooking_time'
         )
+
+
+class ShoppingCartSerializer(FavoriteSerealizator):
+
+    class Meta:
+        model = ShoppingCart
+        fields = ['recipe', 'user']
 
 
 class FollowSerializer(serializers.ModelSerializer):
