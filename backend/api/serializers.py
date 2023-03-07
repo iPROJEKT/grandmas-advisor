@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from colorfield.fields import ColorField
 from rest_framework.validators import UniqueTogetherValidator
+from drf_base64.fields import Base64ImageField
+
 
 from recipes.models import (
     Tag,
@@ -57,7 +59,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
-    image = ColorField(max_length=None, use_url=True)
+    image = Base64ImageField(max_length=None,)
     author = CustomUserSerializer(read_only=True)
     ingredients = AddIngredientInRecipeSerializer(many=True)
     cooking_time = serializers.IntegerField()
@@ -149,7 +151,7 @@ class ShoppingCartSerializer(FavoriteSerializer):
 
 class ShowRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
-    image = ColorField()
+    image = Base64ImageField()
     author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField('get_ingredients')
     is_favorited = serializers.SerializerMethodField('get_is_favorited')
@@ -186,16 +188,7 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = [
-            'id',
-            'tags',
-            'author',
-            'ingredients',
-            'is_favorited',
-            'is_in_shopping_cart',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
+            '__all__', 'image'
         ]
 
 

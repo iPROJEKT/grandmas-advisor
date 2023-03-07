@@ -17,3 +17,4 @@ reportlab
 django-colorfield
 webcolors
 django-cors-headers
+drf_base64

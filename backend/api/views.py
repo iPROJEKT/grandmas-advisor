@@ -7,6 +7,8 @@ from rest_framework import viewsets, filters
 from rest_framework.decorators import api_view
 from rest_framework import viewsets, status
 from django.shortcuts import get_object_or_404
+from django.db.models.aggregates import Count, Sum
+from django.db.models.expressions import Exists, OuterRef, Value
 from rest_framework.permissions import(
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
@@ -50,9 +52,7 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.select_related(
-        'recipes', 'ingredients'
-    ).order_by('recipes')
+    queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
@@ -61,10 +61,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return CreateRecipeSerializer
         return ShowRecipeSerializer
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({"request": self.request})
-        return context
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class FavoriteView(APIView):
