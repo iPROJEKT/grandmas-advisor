@@ -4,7 +4,11 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     TagViewSet,
     IngredientsViewSet,
-    RecipesViewSet
+    RecipesViewSet,
+    FavoriteView,
+    ShoppingCartViewSet,
+    FollowViewSet,
+    download_shopping_cart
 )
 
 

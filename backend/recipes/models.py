@@ -63,11 +63,6 @@ class Recipe(models.Model):
             ), 
         ])
 
-    pub_date = models.DateTimeField(
-        'Дата публикации',
-        auto_now_add=True,
-    )
-
 
 class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
@@ -112,9 +107,6 @@ class FavoriteRecipe(models.Model):
         on_delete=models.CASCADE,
         null=True,
         related_name='favorite_recipe',
-    )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
     )
 
     class Meta:

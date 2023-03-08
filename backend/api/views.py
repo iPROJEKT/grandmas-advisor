@@ -52,17 +52,9 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().order_by('name')
     permission_classes = (IsAuthenticatedOrReadOnly,)
-
-    def get_serializer_class(self):
-        method = self.request.method
-        if method == "POST" or method == "PATCH":
-            return CreateRecipeSerializer
-        return ShowRecipeSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    serializer_class = ShowRecipeSerializer
 
 
 class FavoriteView(APIView):
