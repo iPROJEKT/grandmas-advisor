@@ -18,3 +18,4 @@ django-colorfield
 webcolors
 django-cors-headers
 drf_base64
+django-extra-fields
