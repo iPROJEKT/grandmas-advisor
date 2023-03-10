@@ -29,16 +29,19 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         )
 
 
-class FollowRecipeSerializer(serializers.ModelSerializer):
+class SubscribeRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class FollowSerializer(serializers.ModelSerializer):
+class SubscribeSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(
         source='author.id'
+    )
+    email = serializers.EmailField(
+        source='author.email'
     )
     username = serializers.CharField(
         source='author.username'
@@ -57,9 +60,15 @@ class FollowSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+
     class Meta:
         model = Follow
-        fields = ('__all__')
+        fields = (
+            'email', 'id', 'username',
+            'first_name', 'last_name',
+            'is_subscribed', 'recipes',
+            'recipes_count',
+        )
 
     def get_recipes(self, obj):
         request = self.context.get('request')
@@ -67,7 +76,6 @@ class FollowSerializer(serializers.ModelSerializer):
         recipes = (
             obj.author.recipe.all()[:int(limit)] if limit
             else obj.author.recipe.all())
-        return FollowRecipeSerializer(
+        return SubscribeRecipeSerializer(
             recipes,
-            many=True
         ).data
