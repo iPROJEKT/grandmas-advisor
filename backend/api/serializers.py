@@ -10,6 +10,32 @@ from recipes.models import (
     ShoppingCart, Tag
 )
 from user.serializers import CustomUserSerializer
+from user.models import User
+
+
+class GetIsSubscribedMixin:
+    def get_is_subscribed(self, obj):
+        if self.context['request'].user.is_authenticated:
+            return self.context['request'].user.follower.filter(
+                author=obj
+            ).exists()
+
+
+class RecipeUserSerializer(
+    GetIsSubscribedMixin,
+    serializers.ModelSerializer
+    ):
+
+    is_subscribed = serializers.SerializerMethodField(
+        read_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username',
+            'first_name', 'last_name', 'is_subscribed'
+        )
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -28,7 +54,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         read_only_fields = '__all__',
 
 
-class IngredientAmountSerializer(serializers.ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(
         source='ingredient.id'
     )
@@ -49,37 +75,47 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeListSerializer(serializers.ModelSerializer):
+class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = IngredientAmountSerializer(many=True, read_only=True)
+    ingredients = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = (
+            'id', 'tags', 'author', 'ingredients',
+            'is_favorited', 'is_in_shopping_cart',
+            'name', 'image', 'text', 'cooking_time',
+        )
 
     def get_ingredients(self, obj):
-        return IngredientAmountSerializer(
+        return IngredientSerializer(
             IngredientRecipe.objects.filter(
             recipe=obj
             ),
             many=True
         ).data
 
+
     def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
         return FavoriteRecipe.objects.filter(
-            user=self.context.get('request').user,
-            recipe=obj
+            recipe=obj,
+            user=request.user,
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
         return ShoppingCart.objects.filter(
-            user=self.context.get('request').user,
-            recipe=obj
+            recipe=obj,
+            user=request.user
         ).exists()
-
 
 class IngredientsEditSerializer(serializers.ModelSerializer):
 
@@ -139,7 +175,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
-        return RecipeListSerializer(
+        return IngredientSerializer(
             instance,
             context={
                 'request': self.context.get('request')
@@ -161,10 +197,11 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
-        request = self.context.get('request')
-        context = {'request': request}
         return ShortRecipeSerializer(
-            instance.recipe, context=context
+            instance.recipe,
+            context={
+                'request': self.context.get('request')
+            }
         ).data
 
 
@@ -178,5 +215,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         context = {'request': request}
         return ShortRecipeSerializer(
-            instance.recipe, context=context
+            instance.recipe,
+            context=context
         ).data
+

@@ -33,7 +33,7 @@ class Ingredients(models.Model):
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
-        related_name='recipes',
+        related_name='recipe',
         on_delete=models.CASCADE,
     )
     name = models.CharField(
@@ -100,7 +100,7 @@ class FavoriteRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorites_recipe',
+        related_name='favorite_recipe',
     )
     user = models.ForeignKey(
         User,
@@ -133,10 +133,6 @@ class ShoppingCart(models.Model):
         on_delete=models.CASCADE,
         related_name='shopping_cart',
         verbose_name='Рецепт для покупки',
-    )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата добавления',
     )
 
     class Meta:

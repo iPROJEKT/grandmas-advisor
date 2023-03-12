@@ -17,7 +17,7 @@ from .filters import  RecipeFilter
 from .pagination import PaginationClass
 from .serializers import (
     FavoriteSerializer, IngredientSerializer,
-    RecipeListSerializer,
+    RecipeReadSerializer,
     ShoppingCartSerializer, TagSerializer,
     RecipeWriteSerializer
 )
@@ -55,12 +55,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, ]
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return RecipeWriteSerializer
-        return RecipeListSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        if self.request.method == 'GET':
+            return RecipeReadSerializer
+        return RecipeWriteSerializer
 
 
 class AddDeleteFavoriteRecipe(
@@ -71,45 +68,56 @@ class AddDeleteFavoriteRecipe(
     permission_classes = (AllowAny,)
 
     def get_object(self):
-        recipe_id = self.kwargs['recipe_id']
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        self.check_object_permissions(self.request, recipe)
-        return recipe
+        return get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
 
     def create(self, request, *args, **kwargs):
-        request.user.favorite_recipe.recipe.add(self.get_object())
-        serializer = self.get_serializer(self.get_object())
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
+        shop_card = FavoriteRecipe.objects.create(
+            user=request.user,
+            recipe=self.get_object()
         )
+        serializer = FavoriteSerializer(
+            shop_card,
+            context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_destroy(self, instance):
-        return self.request.user.favorite_recipe.recipe.remove(
-            instance
+        resipe_del = FavoriteRecipe.objects.filter(
+            recipe=self.get_object()
         )
+        resipe_del.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AddDeleteShoppingCart(
     generics.RetrieveDestroyAPIView,
-    generics.ListCreateAPIView
+    generics.ListCreateAPIView,
 ):
     serializer_class = ShoppingCartSerializer
     permission_classes = (AllowAny,)
 
     def get_object(self):
-        recipe_id = self.kwargs['recipe_id']
-        recipe = get_object_or_404(Recipe, id=recipe_id)
+        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
         self.check_object_permissions(self.request, recipe)
         return recipe
 
-    def create(self, request, *args, **kwargs):
-        request.user.shopping_cart.recipe.add(self.get_object())
-        serializer = self.get_serializer(self.get_object())
+    def post(self, request, *args, **kwargs):
+        shop_card = ShoppingCart.objects.create(
+            user=request.user,
+            recipe=self.get_object()
+        )
+        serializer = ShoppingCartSerializer(
+            shop_card,
+            context={"request": request}
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_destroy(self, instance):
-        self.request.user.shopping_cart.recipe.remove(instance)
+        resipe_del = ShoppingCart.objects.filter(
+            recipe=self.get_object()
+        )
+        resipe_del.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
