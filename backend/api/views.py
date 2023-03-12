@@ -59,6 +59,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
 
 class AddDeleteFavoriteRecipe(
     generics.RetrieveDestroyAPIView,
@@ -68,7 +71,8 @@ class AddDeleteFavoriteRecipe(
     permission_classes = (AllowAny,)
 
     def get_object(self):
-        return get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
+        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
+        self.check_object_permissions(self.request, recipe)
 
     def create(self, request, *args, **kwargs):
         shop_card = FavoriteRecipe.objects.create(
