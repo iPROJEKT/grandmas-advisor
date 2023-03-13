@@ -9,11 +9,11 @@
 # Для того чтоб запустить его на ВМ, нужно:
 ## Заполнение .env
 *Шаблон env файла*
->> EMAIL_HOST_PASSWORD= пароль от почты с которой будет отправляться код для подтверждения 
->> EMAIL_HOST_USER= логин почты
->> DB_ENGINE= испольщзуемая база данных
->> DB_NAME= имя базы
->> POSTGRES_USER= имя для захода в базу
->> POSTGRES_PASSWORD= пароль от базы
->> DB_HOST=db
->> DB_PORT= порт
+* EMAIL_HOST_PASSWORD= пароль от почты с которой будет отправляться код для подтверждения 
+* EMAIL_HOST_USER= логин почты
+* DB_ENGINE= испольщзуемая база данных
+* DB_NAME= имя базы
+* POSTGRES_USER= имя для захода в базу
+* POSTGRES_PASSWORD= пароль от базы
+* DB_HOST=db
+* DB_PORT= порт
