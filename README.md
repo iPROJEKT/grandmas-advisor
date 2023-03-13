@@ -18,7 +18,6 @@
 * DB_HOST=db
 * DB_PORT= порт
 # Описание команд для запуска приложения в контейнерах
->[!IMPORTANT]
 - ```docker-compose up -d --build``` - для того чтоб забилдить и контейнеры (без логов -d)d
 - ```docker-compose exec backend python manage.py migrate``` (миграции)
 - ```docker-compose exec backend python manage.py createsuperuser``` (создание суперюзера)
