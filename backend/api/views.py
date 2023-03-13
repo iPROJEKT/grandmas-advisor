@@ -69,10 +69,13 @@ class AddDeleteFavoriteRecipe(
 ):
     serializer_class = FavoriteSerializer
     permission_classes = (AllowAny,)
+    pagination_class = PaginationClass
+    queryset = FavoriteRecipe.objects.all()
 
     def get_object(self):
         recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
         self.check_object_permissions(self.request, recipe)
+        return recipe
 
     def create(self, request, *args, **kwargs):
         shop_card = FavoriteRecipe.objects.create(
@@ -97,6 +100,8 @@ class AddDeleteShoppingCart(
     generics.RetrieveDestroyAPIView,
     generics.ListCreateAPIView,
 ):
+    pagination_class = PaginationClass
+    queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
     permission_classes = (AllowAny,)
 

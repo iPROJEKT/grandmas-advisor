@@ -44,7 +44,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = serializers.SerializerMethodField(read_only=True)
+    ingredient = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -52,7 +52,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
 
-    def get_ingredients(self, obj):
+    def get_ingredient(self, obj):
         return IngredientAmountSerializer(
             IngredientRecipe.objects.filter(
             recipe=obj
@@ -64,14 +64,18 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return FavoriteRecipe.objects.filter(user=request.user, recipe=obj).exists()
+        return FavoriteRecipe.objects.filter(
+            user=request.user,
+            recipe=obj
+        ).exists()
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
         return ShoppingCart.objects.filter(
-            user=request.user, recipe=obj).exists()
+            user=request.user, recipe=obj
+        ).exists()
 
 
 class IngredientsEditSerializer(serializers.ModelSerializer):
@@ -139,6 +143,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             }
         ).data
 
+
 class ShortRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -162,6 +167,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
+    recipe = serializers.CharField()
+    user = serializers.CharField()
 
     class Meta:
         model = ShoppingCart

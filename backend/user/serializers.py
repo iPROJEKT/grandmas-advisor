@@ -45,10 +45,8 @@ class ShowFollowSerializer(serializers.ModelSerializer):
             author=obj, user=self.context['request'].user).exists()
 
     def get_recipes(self, obj):
-        recipes_limit = int(self.context['request'].GET.get(
-            'recipes_limit', 10))
         user = get_object_or_404(User, pk=obj.pk)
-        recipes = Recipe.objects.filter(author=user)[:recipes_limit]
+        recipes = Recipe.objects.filter(author=user)
 
         return FollowingRecipesSerializers(recipes, many=True).data
 
