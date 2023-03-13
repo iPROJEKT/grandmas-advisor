@@ -24,3 +24,6 @@
 - ```docker-compose exec backend python manage.py collectstatic --no-input``` (сбор статических файлов)
 # Для того чтоб посмотеть мой проект
 ## Перейдите по этой ссылке http://130.193.38.54/
+
+## Admin name: root
+## Admin password: Qwerty123
