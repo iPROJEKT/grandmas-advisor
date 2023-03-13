@@ -17,3 +17,10 @@
 * POSTGRES_PASSWORD= пароль от базы
 * DB_HOST=db
 * DB_PORT= порт
+# Описание команд для запуска приложения в контейнерах
+- ```docker-compose up -d --build``` - для того чтоб забилдить и контейнеры (без логов -d)d
+- ```docker-compose exec ba python manage.py migrate``` (миграции)
+- ```docker-compose exec web python manage.py createsuperuser``` (создание суперюзера)
+- ```docker-compose exec web python manage.py collectstatic --no-input``` (сбор статических файлов)
+# Для того чтоб посмотеть мой проект
+## Перейдите по этой ссылке http://130.193.38.54/
