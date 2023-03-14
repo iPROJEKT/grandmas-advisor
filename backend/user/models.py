@@ -1,8 +1,25 @@
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 
 
-User = get_user_model()
+class User(AbstractUser):
+    email = models.EmailField(
+        max_length=settings.NAME_MAX_LENGTH,
+        unique=True,
+    )
+    first_name = models.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH
+    )
+    last_name = models.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH
+    )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+
+    def __str__(self):
+        return self.email
 
 
 class Follow(models.Model):

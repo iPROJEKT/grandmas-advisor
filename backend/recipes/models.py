@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core import validators
 from colorfield.fields import ColorField
 
-
+from .validators import is_valid_hexa_code
 from user.models import User
 
 
@@ -13,6 +13,7 @@ class Tag(models.Model):
         max_length=settings.NAME_MAX_LENGTH,
     )
     color = ColorField(
+        validators=[is_valid_hexa_code],
         unique=True,
     )
     slug = models.SlugField(
@@ -44,9 +45,10 @@ class Recipe(models.Model):
         blank=True,
         null=True,
     )
-    ingredients = models.ManyToManyField(
+    ingredients = models.ForeignKey(
         Ingredients,
         related_name='ingredients',
+        on_delete=models.CASCADE,
     )
     text = models.TextField(
         'Описание рецепта',
@@ -68,7 +70,6 @@ class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe',
     )
     ingredient = models.ForeignKey(
         Ingredients,
@@ -106,7 +107,6 @@ class FavoriteRecipe(models.Model):
         User,
         on_delete=models.CASCADE,
         null=True,
-        related_name='favorite_recipe',
     )
 
     class Meta:
@@ -125,7 +125,6 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='shopping_cart',
         verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(

@@ -1,6 +1,9 @@
 from drf_extra_fields.fields import Base64ImageField
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from djoser.serializers import UserSerializer
+
+from user.models import User, Follow
+from recipes.models import Recipe
 
 from recipes.models import (
     FavoriteRecipe,
@@ -9,8 +12,21 @@ from recipes.models import (
     Recipe,
     ShoppingCart, Tag
 )
-from user.serializers import CustomUserSerializer
 from user.models import User
+
+
+class UserLimitParamsSerializer(UserSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+        )
+
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -43,7 +59,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
 class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
-    author = CustomUserSerializer(read_only=True)
+    author = UserLimitParamsSerializer(read_only=True)
     ingredient = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
@@ -54,8 +70,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_ingredient(self, obj):
         return IngredientAmountSerializer(
-            IngredientRecipe.objects.filter(
-            recipe=obj
+            IngredientRecipe.objects.select_related(
+                'ingredient'
             ),
             many=True
         ).data
@@ -182,3 +198,38 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             context=context
         ).data
 
+
+class FollowingRecipesSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class ShowFollowSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'email', 'username', 'first_name', 'last_name',
+            'is_subscribed', 'recipes', 'recipes_count'
+        )
+        read_only_fields = fields
+
+    def get_is_subscribed(self, obj):
+        if not self.context['request'].user.is_authenticated:
+            return False
+        return Follow.objects.select_related(
+            'author'
+        ).exists()
+
+    def get_recipes(self, obj):
+        return FollowingRecipesSerializers(
+            Recipe.objects.select_related('author'),
+            many=True
+        ).data
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.select_related('recipe').count()

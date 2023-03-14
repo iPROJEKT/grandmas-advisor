@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
@@ -102,7 +102,7 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-'''
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -131,9 +131,9 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "HIDE_USERS": False,
     "SERIALIZERS": {
-        "user_create": "user.serializers.CustomUserCreateSerializer",
-        "user": "user.serializers.CustomUserSerializer",
-        'current_user': 'user.serializers.CustomUserSerializer',
+        "user_create": "api.serializers.UserLimitParamsSerializer",
+        "user": "api.serializers.UserLimitParamsSerializer",
+        'current_user': 'api.serializers.UserLimitParamsSerializer',
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),
@@ -162,6 +162,7 @@ USERNAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 254
 MAX_SLUG_LEIGHT = 100
 UNCORRECT_USERNAME_CHARS = (r'[^\w.@+-]')
+AUTH_USER_MODEL = 'users.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/

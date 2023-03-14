@@ -1,25 +1,27 @@
-from rest_framework import generics, status, viewsets
+from rest_framework import generics, status, viewsets, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models.aggregates import Sum
 from django.http import HttpResponse
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import(
-    IsAuthenticated,
     IsAuthenticatedOrReadOnly,
-    SAFE_METHODS
 )
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 
+from user.models import User, Follow
 from .filters import  RecipeFilter
 from .pagination import PaginationClass
 from .serializers import (
-    FavoriteSerializer, IngredientSerializer,
+    FavoriteSerializer,
+    IngredientSerializer,
     RecipeReadSerializer,
-    ShoppingCartSerializer, TagSerializer,
-    RecipeWriteSerializer
+    ShoppingCartSerializer,
+    TagSerializer,
+    RecipeWriteSerializer,
+    ShowFollowSerializer,
 )
 from .permissions import (
     AdminOrReadOnly,
@@ -30,7 +32,6 @@ from recipes.models import  (
     Recipe, FavoriteRecipe,
     ShoppingCart, IngredientRecipe
 )
-from user.serializers import FollowingRecipesSerializers
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -48,7 +49,9 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all().order_by('name')
+    queryset = Recipe.objects.select_related(
+        'author'
+    ).order_by('name')
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = PaginationClass
     filterset_class = RecipeFilter
@@ -127,6 +130,59 @@ class AddDeleteShoppingCart(
         )
         resipe_del.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FollowApiView(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+    pagination_class = PaginationClass
+    def post(self, request, *args, **kwargs):
+        if Follow.objects.filter(
+            author=get_object_or_404(
+                User, pk=kwargs.get('id', None)
+            ),
+            user=request.user
+        ).exists():
+            return Response(
+                {'errors': 'Вы уже подписаны на этого пользователя'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        obj_follow = Follow(author=get_object_or_404(
+                User,
+                pk=kwargs.get('id', None)
+            ),
+            user=request.user
+        )
+        obj_follow.save()
+
+        serializer = ShowFollowSerializer(
+            get_object_or_404(
+                User, pk=kwargs.get('id', None)
+            ),
+            context={'request': request}
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, id):
+        user = request.user
+        author = get_object_or_404(User, id=id)
+        subscription = get_object_or_404(
+            Follow,
+            user=user,
+            author=author
+        )
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ListFollowViewSet(generics.ListAPIView):
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated, ]
+    serializer_class = ShowFollowSerializer
+    pagination_class = PaginationClass
+
+    def get_queryset(self):
+        user = self.request.user
+        return User.objects.filter(following__user=user)
 
 
 @api_view(['GET'])
