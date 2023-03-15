@@ -15,9 +15,6 @@ class User(AbstractUser):
         max_length=settings.USERNAME_MAX_LENGTH
     )
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
-
     def __str__(self):
         return self.email
 

@@ -45,11 +45,6 @@ class Recipe(models.Model):
         blank=True,
         null=True,
     )
-    ingredients = models.ForeignKey(
-        Ingredients,
-        related_name='ingredients',
-        on_delete=models.CASCADE,
-    )
     text = models.TextField(
         'Описание рецепта',
     )
@@ -70,6 +65,7 @@ class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='ingredient',
     )
     ingredient = models.ForeignKey(
         Ingredients,

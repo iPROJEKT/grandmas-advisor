@@ -25,13 +25,23 @@ from .serializers import (
 )
 from .permissions import (
     AdminOrReadOnly,
-    AuthorOrAdminOrReadOnly,
 )
 from recipes.models import  (
     Tag, Ingredients,
     Recipe, FavoriteRecipe,
     ShoppingCart, IngredientRecipe
 )
+
+
+class GetObject:
+    serializer_class = ShowFollowSerializer
+    permission_classes = (AllowAny,)
+
+    def get_object(self):
+        recipe_id = self.kwargs['recipe_id']
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        self.check_object_permissions(self.request, recipe)
+        return 
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -68,17 +78,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 class AddDeleteFavoriteRecipe(
     generics.RetrieveDestroyAPIView,
-    generics.ListCreateAPIView
+    generics.ListCreateAPIView,
+    GetObject
 ):
     serializer_class = FavoriteSerializer
     permission_classes = (AllowAny,)
     pagination_class = PaginationClass
-    queryset = FavoriteRecipe.objects.all()
-
-    def get_object(self):
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
-        self.check_object_permissions(self.request, recipe)
-        return recipe
+    queryset = FavoriteRecipe.objects.select_related(
+        'author'
+    ).order_by('recipe')
 
     def create(self, request, *args, **kwargs):
         shop_card = FavoriteRecipe.objects.create(
@@ -102,16 +110,14 @@ class AddDeleteFavoriteRecipe(
 class AddDeleteShoppingCart(
     generics.RetrieveDestroyAPIView,
     generics.ListCreateAPIView,
+    GetObject
 ):
     pagination_class = PaginationClass
-    queryset = ShoppingCart.objects.all()
+    queryset = ShoppingCart.objects.all().order_by(
+        'recipe'
+    )
     serializer_class = ShoppingCartSerializer
     permission_classes = (AllowAny,)
-
-    def get_object(self):
-        recipe = get_object_or_404(Recipe, id=self.kwargs['recipe_id'])
-        self.check_object_permissions(self.request, recipe)
-        return recipe
 
     def post(self, request, *args, **kwargs):
         shop_card = ShoppingCart.objects.create(
