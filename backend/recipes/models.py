@@ -66,10 +66,10 @@ class IngredientRecipe(models.Model):
         Recipe,
         on_delete=models.CASCADE,
     )
-    ingredient = models.ForeignKey(
+    ingredients = models.ForeignKey(
         Ingredients,
         on_delete=models.CASCADE,
-        related_name='ingredient',
+        related_name='ingredients',
     )
     amount = models.PositiveSmallIntegerField(
         default=1,
@@ -85,7 +85,7 @@ class IngredientRecipe(models.Model):
             models.UniqueConstraint(
                 fields=[
                     'recipe',
-                    'ingredient'
+                    'ingredients'
                 ],
                 name='unique ingredient'
             )

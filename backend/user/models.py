@@ -14,6 +14,10 @@ class User(AbstractUser):
     last_name = models.CharField(
         max_length=settings.USERNAME_MAX_LENGTH
     )
+    username = models.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH,
+        unique=True,
+    )
 
     def __str__(self):
         return self.username

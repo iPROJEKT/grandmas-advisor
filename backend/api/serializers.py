@@ -1,6 +1,6 @@
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from user.models import User, Follow
 from recipes.models import Recipe
@@ -29,6 +29,16 @@ class UserLimitParamsSerializer(UserSerializer):
 
 
 
+class CustomUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "email",
+            "username",
+            "password",
+        )
+
+
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -46,10 +56,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
+    id = serializers.ReadOnlyField(source='ingredients.id')
+    name = serializers.ReadOnlyField(source='ingredients.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit'
+        source='ingredients.measurement_unit'
     )
 
     class Meta:
@@ -71,7 +81,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_ingredient(self, obj):
         return IngredientAmountSerializer(
             IngredientRecipe.objects.select_related(
-                'ingredient'
+                'ingredients'
             ),
             many=True
         ).data
