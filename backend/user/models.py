@@ -18,6 +18,7 @@ class User(AbstractUser):
         max_length=settings.USERNAME_MAX_LENGTH,
         unique=True,
     )
+    lookup_field = 'pk'
 
     def __str__(self):
         return self.username

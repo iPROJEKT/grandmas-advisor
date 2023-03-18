@@ -22,6 +22,7 @@ from .serializers import (
     TagSerializer,
     RecipeWriteSerializer,
     ShowFollowSerializer,
+    ShortRecipeSerializer
 )
 from .permissions import (
     AdminOrReadOnly,
@@ -33,15 +34,18 @@ from recipes.models import  (
 )
 
 
-class GetObject:
-    serializer_class = ShowFollowSerializer
+class GetObjectMixin(
+    generics.RetrieveDestroyAPIView,
+    generics.ListCreateAPIView,
+):
+    serializer_class = ShortRecipeSerializer
     permission_classes = (AllowAny,)
 
     def get_object(self):
         recipe_id = self.kwargs['recipe_id']
         recipe = get_object_or_404(Recipe, id=recipe_id)
         self.check_object_permissions(self.request, recipe)
-        return 
+        return recipe
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -62,7 +66,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related(
         'author'
     ).order_by('name')
-    permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = PaginationClass
     filterset_class = RecipeFilter
     filter_backends = [DjangoFilterBackend, ]
@@ -77,18 +80,21 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 
 class AddDeleteFavoriteRecipe(
+    GetObjectMixin,
     generics.RetrieveDestroyAPIView,
-    generics.ListCreateAPIView,
-    GetObject
+    generics.ListCreateAPIView
 ):
+    queryset = FavoriteRecipe.objects.all()
     serializer_class = FavoriteSerializer
     permission_classes = (AllowAny,)
     pagination_class = PaginationClass
-    queryset = FavoriteRecipe.objects.select_related(
-        'author'
-    ).order_by('recipe')
 
-    def create(self, request, *args, **kwargs):
+    def get_queryset(self, request):
+        return FavoriteRecipe.objects.filter(
+            user=request.user
+        )
+
+    def post(self, request, *args, **kwargs):
         shop_card = FavoriteRecipe.objects.create(
             user=request.user,
             recipe=self.get_object()
@@ -108,16 +114,14 @@ class AddDeleteFavoriteRecipe(
 
 
 class AddDeleteShoppingCart(
+    GetObjectMixin,
     generics.RetrieveDestroyAPIView,
     generics.ListCreateAPIView,
-    GetObject
 ):
-    pagination_class = PaginationClass
-    queryset = ShoppingCart.objects.all().order_by(
-        'recipe'
-    )
+    queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
     permission_classes = (AllowAny,)
+    pagination_class = PaginationClass
 
     def post(self, request, *args, **kwargs):
         shop_card = ShoppingCart.objects.create(
@@ -141,6 +145,7 @@ class AddDeleteShoppingCart(
 class FollowApiView(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
     pagination_class = PaginationClass
+
     def post(self, request, *args, **kwargs):
         if Follow.objects.filter(
             author=get_object_or_404(
@@ -159,7 +164,6 @@ class FollowApiView(APIView):
             user=request.user
         )
         obj_follow.save()
-
         serializer = ShowFollowSerializer(
             get_object_or_404(
                 User, pk=kwargs.get('id', None)

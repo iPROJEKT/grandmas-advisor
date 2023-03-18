@@ -28,7 +28,6 @@ class UserLimitParamsSerializer(UserSerializer):
         )
 
 
-
 class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
@@ -56,10 +55,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='ingredients.id')
-    name = serializers.ReadOnlyField(source='ingredients.name')
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredients.measurement_unit'
+        source='ingredient.measurement_unit'
     )
 
     class Meta:
@@ -70,7 +69,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserLimitParamsSerializer(read_only=True)
-    ingredient = serializers.SerializerMethodField(read_only=True)
+    ingredients = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -78,10 +77,12 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
 
-    def get_ingredient(self, obj):
+    def get_ingredients(self, obj):
         return IngredientAmountSerializer(
             IngredientRecipe.objects.select_related(
-                'ingredients'
+                'ingredient'
+            ).filter(
+                recipe=obj,
             ),
             many=True
         ).data
@@ -123,7 +124,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all()
     )
-    ingredients = IngredientsEditSerializer(
+    ingredient = IngredientsEditSerializer(
         many=True
     )
 
@@ -158,7 +159,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 validated_data.pop('tags')
             )
         return super().update(
-            instance, validated_data
+            instance,
+            validated_data
         )
 
     def to_representation(self, instance):
@@ -184,16 +186,16 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
         return ShortRecipeSerializer(
             instance.recipe,
-            context={
-                'request': self.context.get('request')
-            }
+            context=context
         ).data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    recipe = serializers.CharField()
+    recipes = serializers.SerializerMethodField()
     user = serializers.CharField()
 
     class Meta:

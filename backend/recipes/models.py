@@ -41,7 +41,7 @@ class Recipe(models.Model):
         max_length=settings.NAME_MAX_LENGTH
     )
     image = models.ImageField(
-        upload_to='static/recipe/',
+        upload_to='media/recipes/images/',
         blank=True,
         null=True,
     )
@@ -66,7 +66,7 @@ class IngredientRecipe(models.Model):
         Recipe,
         on_delete=models.CASCADE,
     )
-    ingredients = models.ForeignKey(
+    ingredient = models.ForeignKey(
         Ingredients,
         on_delete=models.CASCADE,
         related_name='ingredients',
@@ -85,9 +85,9 @@ class IngredientRecipe(models.Model):
             models.UniqueConstraint(
                 fields=[
                     'recipe',
-                    'ingredients'
+                    'ingredient'
                 ],
-                name='unique ingredient'
+                name='unique ingredients'
             )
         ]
 

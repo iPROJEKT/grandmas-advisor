@@ -20,11 +20,13 @@ urlpatterns = [
     path(
         'recipes/<int:recipe_id>/favorite/',
         AddDeleteFavoriteRecipe.as_view(),
-        name='favorite_recipe'),
+        name='favorite_recipe'
+    ),
     path(
         'recipes/<int:recipe_id>/shopping_cart/',
         AddDeleteShoppingCart.as_view(),
-        name='shopping_cart'),
+        name='shopping_cart'
+    ),
     path(
         'recipes/download_shopping_cart/',
         download_shopping_cart,
