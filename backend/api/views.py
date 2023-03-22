@@ -2,7 +2,7 @@ from rest_framework import generics, status, viewsets, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models.aggregates import Sum
 from django.http import HttpResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -15,14 +15,14 @@ from user.models import User, Follow
 from .filters import  RecipeFilter
 from .pagination import PaginationClass
 from .serializers import (
-    FavoriteSerializer,
     IngredientSerializer,
     RecipeReadSerializer,
-    ShoppingCartSerializer,
     TagSerializer,
     RecipeWriteSerializer,
-    ShowFollowSerializer,
-    ShortRecipeSerializer
+    ShortRecipeSerializer,
+    FavouriteSerializer,
+    ShoppingCardSerializer,
+    ShowFollowSerializer
 )
 from .permissions import (
     AdminOrReadOnly,
@@ -63,9 +63,7 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.select_related(
-        'author'
-    ).order_by('name')
+    queryset = Recipe.objects.all()
     pagination_class = PaginationClass
     filterset_class = RecipeFilter
     filter_backends = [DjangoFilterBackend, ]
@@ -85,21 +83,24 @@ class AddDeleteFavoriteRecipe(
     generics.ListCreateAPIView
 ):
     queryset = FavoriteRecipe.objects.all()
-    serializer_class = FavoriteSerializer
+    serializer_class = FavouriteSerializer
     permission_classes = (AllowAny,)
     pagination_class = PaginationClass
 
-    def get_queryset(self, request):
-        return FavoriteRecipe.objects.filter(
-            user=request.user
-        )
+    def get_recipe(self, obj): 
+        recipes = get_object_or_404(Recipe, pk=obj.pk) 
+        recipe = Recipe.objects.filter(recipe=recipes)
+        return ShortRecipeSerializer(
+            recipe,
+            many=True
+        ).data
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         shop_card = FavoriteRecipe.objects.create(
             user=request.user,
             recipe=self.get_object()
         )
-        serializer = FavoriteSerializer(
+        serializer = FavouriteSerializer(
             shop_card,
             context={"request": request}
         )
@@ -119,16 +120,18 @@ class AddDeleteShoppingCart(
     generics.ListCreateAPIView,
 ):
     queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
-    permission_classes = (AllowAny,)
+    serializer_class = ShoppingCardSerializer
     pagination_class = PaginationClass
 
-    def post(self, request, *args, **kwargs):
+    def get_queryset(self, request):
+        return ShoppingCart.objects.all()
+
+    def create(self, request, *args, **kwargs):
         shop_card = ShoppingCart.objects.create(
             user=request.user,
             recipe=self.get_object()
         )
-        serializer = ShoppingCartSerializer(
+        serializer = ShoppingCardSerializer(
             shop_card,
             context={"request": request}
         )
