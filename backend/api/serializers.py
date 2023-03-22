@@ -153,9 +153,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if 'ingredients' in validated_data:
             ingredients = validated_data.pop('ingredients')
-            IngredientRecipe.objects.delete(
-                ingredient=instance
+            ing = IngredientRecipe.objects.filter(
+                recipe=instance,
             )
+            ing.delete()
             self.create_ingredients(ingredients, instance)
         if 'tags' in validated_data:
             instance.tags.set(
@@ -190,13 +191,11 @@ class FavouriteSerializer(serializers.ModelSerializer):
         model = FavoriteRecipe
         fields = '__all__'
  
-    def get_recipe(self, obj): 
-        recipe = get_object_or_404(Recipe, pk=obj.pk) 
-        recipes = FavoriteRecipe.objects.filter(recipes=recipe)
-        return ShortRecipeSerializer(
-            recipes,
-            many=True
-        ).data 
+    def get_recipe(self, obj, request): 
+        return ShoppingCart.objects.filter(
+            user=request.user,
+            recipe=obj
+        ).exists()
  
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -216,8 +215,8 @@ class ShoppingCardSerializer(serializers.ModelSerializer):
         fields = '__all__'
  
     def get_recipe(self, obj): 
-        recipes = get_object_or_404(Recipe, pk=obj.pk) 
-        recipe = Recipe.objects.filter(recipe=recipes)
+        user = get_object_or_404(User, pk=obj.pk) 
+        recipe = FavoriteRecipe.objects.filter(recipe=user)
         return ShortRecipeSerializer(
             recipe,
             many=True
@@ -265,5 +264,7 @@ class ShowFollowSerializer(serializers.ModelSerializer):
  
     def get_recipes_count(self, obj): 
         user = get_object_or_404(User, pk=obj.pk) 
+
+
 
 
