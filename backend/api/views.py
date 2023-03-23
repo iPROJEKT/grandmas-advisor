@@ -206,10 +206,9 @@ class ListFollowViewSet(generics.ListAPIView):
 
 @api_view(['GET'])
 def download_shopping_cart(request):
-    """Скачать список покупок."""
     ingredient_list = "Cписок покупок:"
     ingredients = IngredientRecipe.objects.filter(
-        recipe__shopping_cart__user=request.user
+        recipe__is_in_shopping_cart__user=request.user
     ).values(
         'ingredient__name',
         'ingredient__measurement_unit'
