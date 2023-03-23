@@ -33,9 +33,11 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
         fields = (
-            "email",
-            "username",
-            "password",
+            'email',
+            'username',
+            'password',
+            'first_name',
+            'last_name',
         )
 
 
@@ -264,6 +266,7 @@ class ShowFollowSerializer(serializers.ModelSerializer):
  
     def get_recipes_count(self, obj): 
         user = get_object_or_404(User, pk=obj.pk) 
+
 
 
 
