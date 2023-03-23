@@ -12,7 +12,7 @@ from rest_framework.permissions import(
 from rest_framework.views import APIView
 
 from user.models import User, Follow
-from .filters import  RecipeFilter
+from .filters import  AuthorAndTagFilter
 from .pagination import PaginationClass
 from .serializers import (
     IngredientSerializer,
@@ -32,6 +32,17 @@ from recipes.models import  (
     Recipe, FavoriteRecipe,
     ShoppingCart, IngredientRecipe
 )
+
+def download_file_response(ingredients_list):
+    buy_list = []
+    for item in ingredients_list:
+        buy_list.append(f'{item["ingredient__name"]} - {item["amount"]} '
+                        f'{item["ingredient__measurement_unit"]} \n')
+
+    response = HttpResponse(buy_list, 'Content-Type: text/plain')
+    response['Content-Disposition'] = ('attachment; '
+                                       'filename="buylist.txt"')
+    return response
 
 
 class GetObjectMixin(
@@ -64,8 +75,8 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    filterset_class = AuthorAndTagFilter
     pagination_class = PaginationClass
-    filterset_class = RecipeFilter
     filter_backends = [DjangoFilterBackend, ]
 
     def get_serializer_class(self):
@@ -82,10 +93,9 @@ class AddDeleteFavoriteRecipe(
     generics.RetrieveDestroyAPIView,
     generics.ListCreateAPIView
 ):
-    queryset = FavoriteRecipe.objects.all()
     serializer_class = FavouriteSerializer
-    permission_classes = (AllowAny,)
     pagination_class = PaginationClass
+    filterset_class = AuthorAndTagFilter
 
     def get_recipe(self, obj): 
         recipes = get_object_or_404(Recipe, pk=obj.pk) 
@@ -119,13 +129,9 @@ class AddDeleteShoppingCart(
     generics.RetrieveDestroyAPIView,
     generics.ListCreateAPIView,
 ):
-    queryset = ShoppingCart.objects.all()
+    filterset_class = AuthorAndTagFilter
     serializer_class = ShoppingCardSerializer
     pagination_class = PaginationClass
-
-    def get_queryset(self, request):
-        return ShoppingCart.objects.all()
-
     def create(self, request, *args, **kwargs):
         shop_card = ShoppingCart.objects.create(
             user=request.user,
@@ -200,11 +206,13 @@ class ListFollowViewSet(generics.ListAPIView):
 
 @api_view(['GET'])
 def download_shopping_cart(request):
+    """Скачать список покупок."""
     ingredient_list = "Cписок покупок:"
     ingredients = IngredientRecipe.objects.filter(
         recipe__shopping_cart__user=request.user
-    ).order_by('ingredient__name').values(
-        'ingredient__name', 'ingredient__measurement_unit'
+    ).values(
+        'ingredient__name',
+        'ingredient__measurement_unit'
     ).annotate(amount=Sum('amount'))
     for ingredient in ingredients:
         ingredient_list += (
