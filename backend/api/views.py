@@ -12,7 +12,7 @@ from rest_framework.permissions import(
 from rest_framework.views import APIView
 
 from user.models import User, Follow
-from .filters import  AuthorAndTagFilter
+from .filters import  ResipeFilter
 from .pagination import PaginationClass
 from .serializers import (
     IngredientSerializer,
@@ -32,17 +32,6 @@ from recipes.models import  (
     Recipe, FavoriteRecipe,
     ShoppingCart, IngredientRecipe
 )
-
-def download_file_response(ingredients_list):
-    buy_list = []
-    for item in ingredients_list:
-        buy_list.append(f'{item["ingredient__name"]} - {item["amount"]} '
-                        f'{item["ingredient__measurement_unit"]} \n')
-
-    response = HttpResponse(buy_list, 'Content-Type: text/plain')
-    response['Content-Disposition'] = ('attachment; '
-                                       'filename="buylist.txt"')
-    return response
 
 
 class GetObjectMixin(
@@ -75,8 +64,9 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    filterset_class = AuthorAndTagFilter
+    filterset_class = ResipeFilter
     pagination_class = PaginationClass
+    permission_classes = (AllowAny, )
     filter_backends = [DjangoFilterBackend, ]
 
     def get_serializer_class(self):
@@ -95,7 +85,7 @@ class AddDeleteFavoriteRecipe(
 ):
     serializer_class = FavouriteSerializer
     pagination_class = PaginationClass
-    filterset_class = AuthorAndTagFilter
+    filterset_class = ResipeFilter
 
     def get_recipe(self, obj): 
         recipes = get_object_or_404(Recipe, pk=obj.pk) 
@@ -129,7 +119,7 @@ class AddDeleteShoppingCart(
     generics.RetrieveDestroyAPIView,
     generics.ListCreateAPIView,
 ):
-    filterset_class = AuthorAndTagFilter
+    filterset_class = ResipeFilter
     serializer_class = ShoppingCardSerializer
     pagination_class = PaginationClass
     def create(self, request, *args, **kwargs):
