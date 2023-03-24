@@ -6,10 +6,16 @@ from .models import (
     ShoppingCart, FavoriteRecipe
 )
 
+class IngredientRecipeInline(admin.StackedInline):
+    model = IngredientRecipe
+    search_fields = ['recipe', ]
+
+@admin.register(Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    inlines = [IngredientRecipeInline]
+
 
 admin.site.register(Tag)
 admin.site.register(Ingredients)
-admin.site.register(IngredientRecipe)
-admin.site.register(Recipe)
 admin.site.register(ShoppingCart)
 admin.site.register(FavoriteRecipe)
