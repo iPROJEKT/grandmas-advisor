@@ -21,6 +21,10 @@ class Tag(models.Model):
         max_length=settings.MAX_SLUG_LEIGHT
     )
 
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Тэги'
+
 
 class Ingredients(models.Model):
     name = models.CharField(
@@ -29,6 +33,10 @@ class Ingredients(models.Model):
     measurement_unit = models.CharField(
         max_length=settings.NAME_MAX_LENGTH,
     )
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
 
 class Recipe(models.Model):
@@ -42,8 +50,8 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         upload_to='media/recipes/images/',
-        blank=True,
-        null=True,
+        blank=False,
+        null=False,
     )
     text = models.TextField(
         'Описание рецепта',
@@ -60,16 +68,24 @@ class Recipe(models.Model):
             ), 
         ])
 
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
 
 class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        null=False,
+        blank=False,
     )
     ingredient = models.ForeignKey(
         Ingredients,
         on_delete=models.CASCADE,
         related_name='ingredients',
+        null=False,
+        blank=False,
     )
     amount = models.PositiveSmallIntegerField(
         default=1,
@@ -81,6 +97,8 @@ class IngredientRecipe(models.Model):
         ])
 
     class Meta:
+        verbose_name = 'Количество ингредиента в рецепте'
+        verbose_name_plural = 'Количество ингредиентов в рецептах'
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -106,6 +124,8 @@ class FavoriteRecipe(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -130,10 +150,12 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        ordering = ('-recipe',)
+        verbose_name = 'Cписок покупок'
+        verbose_name_plural = 'Списки покупок'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='unique_shopping_cart'
             )
         ]
+
