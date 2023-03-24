@@ -136,6 +136,19 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('author',)
 
+
+    def validate_ingredients(self, ingredients):
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Рецепт не может быть без ингредиентов'
+            )
+        for ingredient in ingredients:
+            if int(ingredient.get('amount')) < 1:
+                raise serializers.ValidationError(
+                    'Добавьте все ингредиенты в рецепт'
+                )
+        return ingredients
+
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             IngredientRecipe.objects.create(
