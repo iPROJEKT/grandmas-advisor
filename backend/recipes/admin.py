@@ -9,6 +9,8 @@ from .models import (
 class IngredientRecipeInline(admin.StackedInline):
     model = IngredientRecipe
     search_fields = ['recipe', 'ingredient']
+    extra = 3
+    min_num = 1
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
