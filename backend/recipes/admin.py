@@ -8,7 +8,7 @@ from .models import (
 
 class IngredientRecipeInline(admin.StackedInline):
     model = IngredientRecipe
-    search_fields = ['recipe', ]
+    search_fields = ['recipe', 'ingredient']
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
