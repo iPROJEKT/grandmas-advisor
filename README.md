@@ -1,7 +1,6 @@
 [![Django-app workflow](https://github.com/iPROJEKT/foodgram-project-react/actions/workflows/main.yml/badge.svg)](https://github.com/iPROJEKT/foodgram-project-react/actions/workflows/main.yml)
 # Проект «Продуктовый помощник»
 Дипломный проект — сайт Foodgram, «Продуктовый помощник». На этом сервисе пользователи смогут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
-
 ### Для того чтоб запустить его на ВМ, нужно:
  Заполнение .env
 *Шаблон env файла*
@@ -17,9 +16,10 @@
 ```
 ### Описание команд для запуска приложения в контейнерах
 ```
-docker-compose up -d --build` - для того чтоб забилдить и контейнеры (без логов -d)d
+docker-compose up -d --build` - для того чтоб забилдить и контейнеры (без логов -d)
 docker-compose exec backend python manage.py migrate (миграции)
 docker-compose exec backend python manage.py createsuperuser (создание суперюзера)
 docker-compose exec backend python manage.py collectstatic --no-input (сбор статических файлов)
 ```
 
+### python + DRF + Djoser
